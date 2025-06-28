@@ -35,7 +35,7 @@ extension ReviewCellConfig: TableCellConfig {
         cell.configure(with: self)
     }
     
-    //TODO: как работает
+    //TODO: исправить одинаковую высоту для всех ячеек.
     /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
     /// Вызывается из `heightForRowAt:` делегата таблицы.
     func height(with size: CGSize) -> CGFloat {
@@ -83,11 +83,13 @@ private extension ReviewCellConfig {
 final class ReviewCell: UITableViewCell {
     
     fileprivate var config: Config?
+    private var currentConfigId: UUID?
     
     //MARK: Private. UI Properties
-    
-    fileprivate let avatarStack = UIStackView()
-    fileprivate let ratingStack = UIStackView()
+    fileprivate let userStack = UIStackView()
+    fileprivate let usernameAndRatingStack = UIStackView()
+    fileprivate let textStack = UIStackView()
+    fileprivate let textAndEmptyStack = UIStackView()
     fileprivate let cellStack = UIStackView()
     
     fileprivate let reviewTextLabel = UILabel()
@@ -96,34 +98,26 @@ final class ReviewCell: UITableViewCell {
     fileprivate let avatarImageView = UIImageView()
     fileprivate let usernameLabel = UILabel()
     fileprivate var ratingImageView = UIImageView()
+    fileprivate var emptyView = UIView()
     
     //MARK: Private. Constants
     private enum Constants {
         // MARK: - Размеры
-        
         static let avatarSize = CGSize(width: 36.0, height: 36.0)
         static let avatarCornerRadius = 18.0
         static let photoCornerRadius = 8.0
         
-        static let usernameLabelFont = UIFont.systemFont(ofSize: 17, weight: .bold)
-        
         static let photoSize = CGSize(width: 55.0, height: 66.0)
         static let showMoreButtonSize = Config.showMoreText.size()
         
-        static let ratingImageViewSize = CGSize(width: 16 * 5 + 4 * 1, height: 16)
+        static let usernameLabelFont = UIFont.systemFont(ofSize: 17, weight: .bold)
+        static let ratingImageViewSize = CGSize(width: 84.0, height: 16.0)
         
         // MARK: - Отступы
-        
-        /// Отступы от краёв ячейки до её содержимого.
         static let insets = UIEdgeInsets(top: 9.0, left: 12.0, bottom: 9.0, right: 12.0)
         
         /// Горизонтальный отступ от аватара до имени пользователя.
         static let avatarToUsernameSpacing = 10.0
-        /// Вертикальный отступ для элементов стека
-        static let stackVerticalSpacing = 6.0
-        
-        
-        //TODO: что с этим делать
         /// Вертикальный отступ от имени пользователя до вью рейтинга.
         static let usernameToRatingSpacing = 6.0
         /// Вертикальный отступ от вью рейтинга до текста (если нет фото).
@@ -138,7 +132,6 @@ final class ReviewCell: UITableViewCell {
         static let reviewTextToCreatedSpacing = 6.0
         /// Вертикальный отступ от кнопки "Показать полностью..." до времени создания отзыва.
         static let showMoreToCreatedSpacing = 6.0
-        
     }
     
     required init?(coder: NSCoder) {
@@ -152,6 +145,7 @@ final class ReviewCell: UITableViewCell {
     
     func configure(with config: ReviewCellConfig) {
         self.config = config
+        currentConfigId = config.id
         reviewTextLabel.attributedText = config.reviewText
         reviewTextLabel.numberOfLines = config.maxLines
         createdLabel.attributedText = config.created
@@ -159,6 +153,8 @@ final class ReviewCell: UITableViewCell {
         
         let renderer = RatingRenderer()
         ratingImageView.image = renderer.ratingImage(config.rating)
+        
+        avatarImageView.image = UIImage(named: "l5w5aIHioYc")
     }
     
 }
@@ -171,74 +167,92 @@ private extension ReviewCell {
         setupViewHierarchy()
         setupConstraints()
         configureViews()
-        
     }
     
     func setupViewHierarchy() {
         contentView.addSubview(cellStack)
-        cellStack.addArrangedSubview(avatarStack)
-        cellStack.addArrangedSubview(ratingStack)
-        avatarStack.addArrangedSubview(avatarImageView)
-        ratingStack.addArrangedSubview(usernameLabel)
-        ratingStack.addArrangedSubview(ratingImageView)
-        ratingStack.addArrangedSubview(reviewTextLabel)
-        ratingStack.addArrangedSubview(createdLabel)
+        
+        cellStack.addArrangedSubview(userStack)
+        cellStack.addArrangedSubview(textAndEmptyStack)
+        
+        userStack.addArrangedSubview(avatarImageView)
+        userStack.addArrangedSubview(usernameAndRatingStack)
+        
+        usernameAndRatingStack.addArrangedSubview(usernameLabel)
+        usernameAndRatingStack.addArrangedSubview(ratingImageView)
+        
+        textAndEmptyStack.addArrangedSubview(emptyView)
+        
+        textAndEmptyStack.addArrangedSubview(textStack)
+        
+        textStack.addArrangedSubview(reviewTextLabel)
+        textStack.addArrangedSubview(createdLabel)
     }
     
     func configureViews() {
-        reviewTextLabel.lineBreakMode = .byWordWrapping
         
-        showMoreButton.contentVerticalAlignment = .fill
-        showMoreButton.setAttributedTitle(Config.showMoreText, for: .normal)
-        
-        avatarImageView.image = UIImage(named: "l5w5aIHioYc")
-        avatarImageView.contentMode = .scaleAspectFit
+        avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.layer.cornerRadius = Constants.avatarCornerRadius
         avatarImageView.clipsToBounds = true
         
+        
         usernameLabel.font = Constants.usernameLabelFont
+        usernameLabel.numberOfLines = 1
+        createdLabel.textColor = .gray
+        createdLabel.font = UIFont.systemFont(ofSize: 14)
         
-        ratingImageView.contentMode = .scaleAspectFit
+        ratingImageView.contentMode = .left
         
-        avatarStack.axis = .vertical
+        cellStack.axis = .vertical
+        cellStack.spacing = Constants.ratingToTextSpacing
+        cellStack.alignment = .top
         
-        ratingStack.axis = .vertical
-        ratingStack.spacing = Constants.stackVerticalSpacing
-        ratingStack.alignment = .leading
+        userStack.axis = .horizontal
+        userStack.spacing = Constants.avatarToUsernameSpacing
+        userStack.alignment = .center
         
-        cellStack.axis = .horizontal
-        cellStack.spacing = Constants.avatarToUsernameSpacing
+        usernameAndRatingStack.axis = .vertical
+        usernameAndRatingStack.spacing = Constants.usernameToRatingSpacing
+        usernameAndRatingStack.alignment = .leading
+        
+        textAndEmptyStack.axis = .horizontal
+        textAndEmptyStack.spacing = Constants.avatarToUsernameSpacing
+        textAndEmptyStack.alignment = .center
+        
+        textStack.axis = .vertical
+        textStack.spacing = Constants.reviewTextToCreatedSpacing
+        textStack.alignment = .leading
     }
     
     func setupConstraints() {
-        avatarStack.translatesAutoresizingMaskIntoConstraints = false
-        ratingStack.translatesAutoresizingMaskIntoConstraints = false
-        cellStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        reviewTextLabel.translatesAutoresizingMaskIntoConstraints = false
-        createdLabel.translatesAutoresizingMaskIntoConstraints = false
-        showMoreButton.translatesAutoresizingMaskIntoConstraints = false
-        avatarImageView.translatesAutoresizingMaskIntoConstraints = false
-        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
-        ratingImageView.translatesAutoresizingMaskIntoConstraints = false
+        [cellStack, userStack, usernameAndRatingStack, textAndEmptyStack, textStack, avatarImageView, usernameLabel, ratingImageView, reviewTextLabel, createdLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
         
         NSLayoutConstraint.activate([
             avatarImageView.widthAnchor.constraint(equalToConstant: Constants.avatarSize.width),
             avatarImageView.heightAnchor.constraint(equalToConstant: Constants.avatarSize.height),
             
-            showMoreButton.widthAnchor.constraint(equalToConstant: Constants.showMoreButtonSize.width),
-            showMoreButton.heightAnchor.constraint(equalToConstant: Constants.showMoreButtonSize.height),
-            
             ratingImageView.heightAnchor.constraint(equalToConstant: Constants.ratingImageViewSize.height),
             ratingImageView.widthAnchor.constraint(equalToConstant: Constants.ratingImageViewSize.width),
             
-            cellStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Constants.insets.left),
-            cellStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Constants.insets.top),
-            cellStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Constants.insets.right),
-            cellStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Constants.insets.bottom),
+            emptyView.widthAnchor.constraint(equalToConstant: Constants.avatarSize.width),
+            
+            reviewTextLabel.leadingAnchor.constraint(equalTo: textStack.leadingAnchor),
+            reviewTextLabel.trailingAnchor.constraint(equalTo: textStack.trailingAnchor),
+            
+            cellStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
+                                               constant: Constants.insets.left),
+            cellStack.topAnchor.constraint(equalTo: contentView.topAnchor,
+                                           constant: Constants.insets.top),
+            cellStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
+                                                constant: -Constants.insets.right),
+            cellStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
+                                              constant: -Constants.insets.bottom)
         ])
     }
 }
+
 
 // MARK: - Typealias
 
