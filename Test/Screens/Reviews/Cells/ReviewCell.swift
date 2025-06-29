@@ -35,35 +35,10 @@ extension ReviewCellConfig: TableCellConfig {
         cell.configure(with: self)
     }
     
-    //TODO: исправить одинаковую высоту для всех ячеек.
     /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
     /// Вызывается из `heightForRowAt:` делегата таблицы.
     func height(with size: CGSize) -> CGFloat {
-        let cell = ReviewCellConfig.sizingCell ?? ReviewCell(style: .default, reuseIdentifier: nil)
-        ReviewCellConfig.sizingCell = cell
-        
-        // Настройка контента
-        cell.reviewTextLabel.attributedText = reviewText
-        cell.reviewTextLabel.numberOfLines = maxLines
-        cell.createdLabel.attributedText = created
-        cell.usernameLabel.attributedText = username
-        
-        // Настройка рейтинга
-        let renderer = RatingRenderer()
-        cell.ratingImageView.image = renderer.ratingImage(rating)
-        
-        // Установка ширины для расчета
-        cell.bounds = CGRect(x: 0, y: 0, width: size.width, height: .greatestFiniteMagnitude)
-        
-        // Принудительный расчет лейаута
-        cell.setNeedsLayout()
-        cell.layoutIfNeeded()
-        
-        return cell.contentView.systemLayoutSizeFitting(
-            UIView.layoutFittingCompressedSize,
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel
-        ).height.rounded(.up)
+        return UITableView.automaticDimension
     }
     
 }
@@ -113,6 +88,8 @@ final class ReviewCell: UITableViewCell {
         static let usernameLabelFont = UIFont.systemFont(ofSize: 17, weight: .bold)
         static let ratingImageViewSize = CGSize(width: 84.0, height: 16.0)
         
+        static let createdLabelFont = UIFont.systemFont(ofSize: 14)
+        
         // MARK: - Отступы
         static let insets = UIEdgeInsets(top: 9.0, left: 12.0, bottom: 9.0, right: 12.0)
         
@@ -155,6 +132,8 @@ final class ReviewCell: UITableViewCell {
         ratingImageView.image = renderer.ratingImage(config.rating)
         
         avatarImageView.image = UIImage(named: "l5w5aIHioYc")
+        
+        setNeedsLayout()
     }
     
 }
@@ -198,14 +177,18 @@ private extension ReviewCell {
         
         usernameLabel.font = Constants.usernameLabelFont
         usernameLabel.numberOfLines = 1
+        
         createdLabel.textColor = .gray
-        createdLabel.font = UIFont.systemFont(ofSize: 14)
+        createdLabel.font = Constants.createdLabelFont
+        
+        reviewTextLabel.numberOfLines = 0 // Будет переопределено в configure
+        reviewTextLabel.lineBreakMode = .byWordWrapping
         
         ratingImageView.contentMode = .left
         
         cellStack.axis = .vertical
         cellStack.spacing = Constants.ratingToTextSpacing
-        cellStack.alignment = .top
+        cellStack.alignment = .fill
         
         userStack.axis = .horizontal
         userStack.spacing = Constants.avatarToUsernameSpacing
@@ -217,15 +200,33 @@ private extension ReviewCell {
         
         textAndEmptyStack.axis = .horizontal
         textAndEmptyStack.spacing = Constants.avatarToUsernameSpacing
-        textAndEmptyStack.alignment = .center
+        textAndEmptyStack.alignment = .top
         
         textStack.axis = .vertical
         textStack.spacing = Constants.reviewTextToCreatedSpacing
         textStack.alignment = .leading
+        
+        setupContentPriorities()
+    }
+    
+    func setupContentPriorities() {
+        usernameLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        createdLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        reviewTextLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        ratingImageView.setContentCompressionResistancePriority(.required, for: .vertical)
+        
+        usernameLabel.setContentHuggingPriority(.required, for: .vertical)
+        createdLabel.setContentHuggingPriority(.required, for: .vertical)
+        ratingImageView.setContentHuggingPriority(.required, for: .vertical)
+        reviewTextLabel.setContentHuggingPriority(.defaultLow, for: .vertical)
+        
+        usernameLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        ratingImageView.setContentHuggingPriority(.required, for: .horizontal)
     }
     
     func setupConstraints() {
-        [cellStack, userStack, usernameAndRatingStack, textAndEmptyStack, textStack, avatarImageView, usernameLabel, ratingImageView, reviewTextLabel, createdLabel].forEach {
+        [cellStack, userStack, usernameAndRatingStack, textAndEmptyStack, textStack,
+         avatarImageView, usernameLabel, ratingImageView, reviewTextLabel, createdLabel, emptyView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         
