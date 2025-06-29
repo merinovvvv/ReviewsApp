@@ -8,20 +8,29 @@
          BreakpointExtensionID = "Xcode.Breakpoint.SymbolicBreakpoint">
          <BreakpointContent
             uuid = "C37286AE-89CA-45F9-B735-ED85CA10A80A"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
-            continueAfterRunningActions = "No"
+            continueAfterRunningActions = "Yes"
             symbolName = "-[UIViewController dealloc]"
             moduleName = "">
             <Actions>
                <BreakpointActionProxy
                   ActionExtensionID = "Xcode.BreakpointAction.DebuggerCommand">
                   <ActionContent
-                     consoleCommand = "--- dealloc @(id)[$arg1 description]@">
+                     consoleCommand = "p (void)printf(&quot;DEALLOC: %p\n&quot;, $arg1)">
                   </ActionContent>
                </BreakpointActionProxy>
             </Actions>
             <Locations>
+               <Location
+                  uuid = "C37286AE-89CA-45F9-B735-ED85CA10A80A - d678e86d6b527609"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[UIViewController dealloc]"
+                  moduleName = "UIKitCore"
+                  usesParentBreakpointCondition = "Yes">
+               </Location>
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
