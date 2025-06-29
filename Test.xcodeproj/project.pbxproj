@@ -28,7 +28,6 @@
 		21ED1F622D69CBCD0012D6F6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21ED1F612D69CBCD0012D6F6 /* RootView.swift */; };
 		21ED1F652D69D0340012D6F6 /* ReviewsScreenFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21ED1F642D69D0340012D6F6 /* ReviewsScreenFactory.swift */; };
 		5AC1EE182E116290004516B2 /* TotalReviewsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AC1EE172E11628C004516B2 /* TotalReviewsCell.swift */; };
-		5AC1EE1B2E118B35004516B2 /* HeightCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AC1EE1A2E118B31004516B2 /* HeightCache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,7 +53,6 @@
 		21ED1F612D69CBCD0012D6F6 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		21ED1F642D69D0340012D6F6 /* ReviewsScreenFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewsScreenFactory.swift; sourceTree = "<group>"; };
 		5AC1EE172E11628C004516B2 /* TotalReviewsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TotalReviewsCell.swift; sourceTree = "<group>"; };
-		5AC1EE1A2E118B31004516B2 /* HeightCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightCache.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,7 +138,6 @@
 		21B82E2C2D47B0640085DAA2 /* Test */ = {
 			isa = PBXGroup;
 			children = (
-				5AC1EE192E118B2A004516B2 /* Utility */,
 				21B82E2B2D47B0640085DAA2 /* AppDelegate.swift */,
 				21B82E2A2D47B0640085DAA2 /* Screens */,
 				2166686D2D48DEBF009AAA76 /* Protocols */,
@@ -191,14 +188,6 @@
 				21ED1F612D69CBCD0012D6F6 /* RootView.swift */,
 			);
 			path = Root;
-			sourceTree = "<group>";
-		};
-		5AC1EE192E118B2A004516B2 /* Utility */ = {
-			isa = PBXGroup;
-			children = (
-				5AC1EE1A2E118B31004516B2 /* HeightCache.swift */,
-			);
-			path = Utility;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -276,7 +265,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				21B82E392D47B1320085DAA2 /* Review.swift in Sources */,
-				5AC1EE1B2E118B35004516B2 /* HeightCache.swift in Sources */,
 				21B8416D2D47C0E20085DAA2 /* ReviewsViewModelState.swift in Sources */,
 				21B82E2E2D47B0640085DAA2 /* ReviewCell.swift in Sources */,
 				21ED1F622D69CBCD0012D6F6 /* RootView.swift in Sources */,

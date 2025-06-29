@@ -151,38 +151,12 @@ extension ReviewsViewModel: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension ReviewsViewModel: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        let config = state.items[indexPath.row]
-
-        // Попытка получить кешированную высоту
-        if let reviewConfig = config as? ReviewCellConfig,
-           let cachedHeight = reviewConfig.getCachedHeight(for: tableView.bounds.size) {
-            return cachedHeight
-        }
-
-        // Возвращаем примерную высоту
-        return 120
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        state.items[indexPath.row].height(with: tableView.bounds.size)
     }
-
-    // ДОБАВИТЬ: Предварительный расчет высот для видимых ячеек
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        // Предварительно рассчитываем высоты для следующих ячеек в фоне
-        let preloadRange = 5 // количество ячеек для предварительного расчета
-
-        DispatchQueue.global(qos: .background).async { [weak self] in
-            guard let self = self else { return }
-
-            let startIndex = indexPath.row + 1
-            let endIndex = min(startIndex + preloadRange, self.state.items.count)
-
-            for i in startIndex..<endIndex {
-                DispatchQueue.main.async {
-                    _ = self.state.items[i].height(with: tableView.bounds.size)
-                }
-            }
-        }
-    }
-
+    
+    /// Метод дозапрашивает отзывы, если до конца списка отзывов осталось два с половиной экрана по высоте.
     func scrollViewWillEndDragging(
         _ scrollView: UIScrollView,
         withVelocity velocity: CGPoint,
@@ -192,7 +166,7 @@ extension ReviewsViewModel: UITableViewDelegate {
             getReviews()
         }
     }
-
+    
     private func shouldLoadNextPage(
         scrollView: UIScrollView,
         targetOffsetY: CGFloat,
@@ -204,6 +178,5 @@ extension ReviewsViewModel: UITableViewDelegate {
         let remainingDistance = contentHeight - viewHeight - targetOffsetY
         return remainingDistance <= triggerDistance
     }
-
     
 }
