@@ -21,12 +21,29 @@ struct ReviewCellConfig {
     /// Замыкание, вызываемое при нажатии на кнопку "Показать полностью...".
     let onTapShowMore: (UUID) -> Void
     
+    func getCachedHeight(for size: CGSize) -> CGFloat? {
+        let sizeKey = "\(cacheKey)-\(Int(size.width))"
+        return Self.heightCache.getHeight(for: sizeKey)
+    }
 }
 
 // MARK: - TableCellConfig
 
 extension ReviewCellConfig: TableCellConfig {
     private static var sizingCell: ReviewCell?
+    
+    // Статический кеш высот
+    private static let heightCache = HeightCache()
+
+    // Ключ для кеширования на основе контента
+    private var cacheKey: String {
+        let reviewTextKey = reviewText.string.prefix(50)
+        let maxLinesKey = "\(maxLines)"
+        let usernameKey = username.string
+        let ratingKey = "\(rating)"
+
+        return "\(reviewTextKey)-\(maxLinesKey)-\(usernameKey)-\(ratingKey)"
+    }
     
     /// Метод обновления ячейки.
     /// Вызывается из `cellForRowAt:` у `dataSource` таблицы.
@@ -35,12 +52,71 @@ extension ReviewCellConfig: TableCellConfig {
         cell.configure(with: self)
     }
     
-    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
-    /// Вызывается из `heightForRowAt:` делегата таблицы.
+//    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
+//    /// Вызывается из `heightForRowAt:` делегата таблицы.
+//    func height(with size: CGSize) -> CGFloat {
+//        return UITableView.automaticDimension
+//    }
+    
+    /// Оптимизированный метод расчета высоты с кешированием
     func height(with size: CGSize) -> CGFloat {
-        return UITableView.automaticDimension
+        // ВАЖНО: Все UI операции только на главном потоке
+        assert(Thread.isMainThread, "height(with:) должен вызываться только на главном потоке")
+
+        let sizeKey = "\(cacheKey)-\(Int(size.width))"
+
+        // Проверяем кеш
+        if let cachedHeight = Self.heightCache.getHeight(for: sizeKey) {
+            return cachedHeight
+        }
+
+        // Рассчитываем высоту
+        let calculatedHeight = calculateHeight(with: size)
+
+        // Сохраняем в кеш
+        Self.heightCache.setHeight(calculatedHeight, for: sizeKey)
+
+        return calculatedHeight
     }
     
+    private func calculateHeight(with size: CGSize) -> CGFloat {
+        let cell: ReviewCell
+        if let existingCell = ReviewCellConfig.sizingCell {
+            cell = existingCell
+            cell.prepareForReuse()
+        } else {
+            cell = ReviewCell(style: .default, reuseIdentifier: nil)
+            ReviewCellConfig.sizingCell = cell
+        }
+
+        // Конфигурация через ваш существующий метод
+        cell.configure(with: self)
+
+        // ✅ Правильная установка bounds для расчета
+        cell.frame = CGRect(x: 0, y: 0, width: size.width, height: 1000) // Большая высота
+        cell.contentView.frame = cell.bounds
+
+        // Принудительный layout
+        cell.setNeedsUpdateConstraints()
+        cell.updateConstraintsIfNeeded()
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+
+        // Расчет минимальной высоты
+        let fittingSize = CGSize(width: size.width, height: UIView.layoutFittingCompressedSize.height)
+        let calculatedSize = cell.contentView.systemLayoutSizeFitting(
+            fittingSize,
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+
+        // ✅ Увеличьте минимальную высоту
+        return max(calculatedSize.height, 80.0).rounded(.up)
+    }
+
+    static func clearHeightCache() {
+        heightCache.clearCache()
+    }
 }
 
 // MARK: - Private
@@ -127,13 +203,34 @@ final class ReviewCell: UITableViewCell {
         reviewTextLabel.numberOfLines = config.maxLines
         createdLabel.attributedText = config.created
         usernameLabel.attributedText = config.username
-        
+
         let renderer = RatingRenderer()
         ratingImageView.image = renderer.ratingImage(config.rating)
-        
+
         avatarImageView.image = UIImage(named: "l5w5aIHioYc")
-        
-        setNeedsLayout()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        // Очищаем все текстовые поля
+        reviewTextLabel.attributedText = nil
+        reviewTextLabel.text = nil
+        reviewTextLabel.numberOfLines = 0
+
+        createdLabel.attributedText = nil
+        createdLabel.text = nil
+
+        usernameLabel.attributedText = nil
+        usernameLabel.text = nil
+
+        // Очищаем изображения
+        ratingImageView.image = nil
+        avatarImageView.image = nil
+
+        // Сбрасываем конфигурацию
+        config = nil
+        currentConfigId = nil
     }
     
 }

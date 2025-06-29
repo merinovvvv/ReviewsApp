@@ -50,9 +50,6 @@ final class TotalReviewsCell: UITableViewCell {
     private enum Constants {
         // MARK: - Размеры
         static let reviewsLabelFont = UIFont.systemFont(ofSize: 14)
-        
-        // MARK: - Отступы
-        static let insets = UIEdgeInsets(top: 9.0, left: 12.0, bottom: 9.0, right: 12.0)
     }
     
     required init?(coder: NSCoder) {
@@ -65,10 +62,23 @@ final class TotalReviewsCell: UITableViewCell {
     }
     
     func configure(with config: TotalReviewsCellConfig) {
+        
+        guard currentConfigId != config.id else { return }
+        
         self.config = config
         currentConfigId = config.id
         reviewsLabel.text = "\(config.reviewCount) отзывов"
-        setNeedsLayout()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        // Clear content
+        reviewsLabel.text = nil
+        
+        // Reset config
+        config = nil
+        currentConfigId = nil
     }
     
 }
@@ -86,7 +96,7 @@ private extension TotalReviewsCell {
     func setupViewHierarchy() {
         contentView.addSubview(reviewsLabel)
     }
-
+    
     func configureViews() {
         reviewsLabel.textColor = .gray
         reviewsLabel.font = Constants.reviewsLabelFont

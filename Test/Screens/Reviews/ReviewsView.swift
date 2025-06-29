@@ -34,9 +34,6 @@ private extension ReviewsView {
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
         
-        tableView.estimatedRowHeight = 120
-        tableView.rowHeight = UITableView.automaticDimension
-        
         tableView.register(ReviewCell.self, forCellReuseIdentifier: ReviewCellConfig.reuseId)
         tableView.register(TotalReviewsCell.self, forCellReuseIdentifier: TotalReviewsCellConfig.reuseId)
     }
