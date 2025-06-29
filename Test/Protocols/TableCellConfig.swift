@@ -13,7 +13,7 @@ protocol TableCellConfig {
 
     /// Метод возвращающий актуальную высоту ячейки.
     /// Вызывается из `heightForRowAt:` делегата таблицы.
-    func height(with size: CGSize) -> CGFloat
+    //func height(with size: CGSize) -> CGFloat
 
 }
 

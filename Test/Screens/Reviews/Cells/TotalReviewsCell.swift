@@ -20,8 +20,6 @@ struct TotalReviewsCellConfig {
 // MARK: - TableCellConfig
 
 extension TotalReviewsCellConfig: TableCellConfig {
-    private static var sizingCell: ReviewCell?
-    
     /// Метод обновления ячейки.
     /// Вызывается из `cellForRowAt:` у `dataSource` таблицы.
     func update(cell: UITableViewCell) {
@@ -29,11 +27,11 @@ extension TotalReviewsCellConfig: TableCellConfig {
         cell.configure(with: self)
     }
     
-    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
-    /// Вызывается из `heightForRowAt:` делегата таблицы.
-    func height(with size: CGSize) -> CGFloat {
-        return UITableView.automaticDimension
-    }
+    //    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
+    //    /// Вызывается из `heightForRowAt:` делегата таблицы.
+    //    func height(with size: CGSize) -> CGFloat {
+    //        return UITableView.automaticDimension
+    //    }
 }
 
 // MARK: - Cell
@@ -50,6 +48,7 @@ final class TotalReviewsCell: UITableViewCell {
     private enum Constants {
         // MARK: - Размеры
         static let reviewsLabelFont = UIFont.systemFont(ofSize: 14)
+        static let reviewsLabelSpacing = 16.0
     }
     
     required init?(coder: NSCoder) {
@@ -104,8 +103,9 @@ private extension TotalReviewsCell {
         reviewsLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
+            reviewsLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Constants.reviewsLabelSpacing),
             reviewsLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            reviewsLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            reviewsLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Constants.reviewsLabelSpacing)
         ])
     }
 }

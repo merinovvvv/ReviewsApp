@@ -26,8 +26,6 @@ struct ReviewCellConfig {
 // MARK: - TableCellConfig
 
 extension ReviewCellConfig: TableCellConfig {
-    private static var sizingCell: ReviewCell?
-    
     /// Метод обновления ячейки.
     /// Вызывается из `cellForRowAt:` у `dataSource` таблицы.
     func update(cell: UITableViewCell) {
@@ -35,11 +33,11 @@ extension ReviewCellConfig: TableCellConfig {
         cell.configure(with: self)
     }
     
-    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
-    /// Вызывается из `heightForRowAt:` делегата таблицы.
-    func height(with size: CGSize) -> CGFloat {
-        return UITableView.automaticDimension
-    }
+//    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
+//    /// Вызывается из `heightForRowAt:` делегата таблицы.
+//    func height(with size: CGSize) -> CGFloat {
+//        return UITableView.automaticDimension
+//    }
 }
 
 // MARK: - Private
@@ -244,12 +242,11 @@ private extension ReviewCell {
         
         
         usernameLabel.font = Constants.usernameLabelFont
-        usernameLabel.numberOfLines = 1
         
         createdLabel.textColor = .gray
         createdLabel.font = Constants.createdLabelFont
         
-        reviewTextLabel.numberOfLines = 0 // Будет переопределено в configure
+        reviewTextLabel.numberOfLines = .zero // Будет переопределено в configure
         reviewTextLabel.lineBreakMode = .byWordWrapping
         
         ratingImageView.contentMode = .left
