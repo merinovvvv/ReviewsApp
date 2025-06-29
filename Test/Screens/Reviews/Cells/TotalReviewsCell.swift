@@ -73,10 +73,8 @@ final class TotalReviewsCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         
-        // Clear content
         reviewsLabel.text = nil
         
-        // Reset config
         config = nil
         currentConfigId = nil
     }

@@ -121,6 +121,9 @@ final class ReviewCell: UITableViewCell {
     }
     
     func configure(with config: ReviewCellConfig) {
+        
+        guard currentConfigId != config.id else { return }
+        
         self.config = config
         currentConfigId = config.id
         reviewTextLabel.attributedText = config.reviewText
@@ -136,19 +139,15 @@ final class ReviewCell: UITableViewCell {
         configureShowMoreButton()
     }
     
-    // MARK: - Show More Button Configuration
     private func configureShowMoreButton() {
         guard let config = config else { return }
         
-        // Check if text is truncated
         let isTextTruncated = isTextTruncated(for: reviewTextLabel, with: config.reviewText)
         
         if isTextTruncated && config.maxLines > 0 {
-            // Show the button
             showMoreButton.isHidden = false
             addShowMoreButtonIfNeeded()
         } else {
-            // Hide the button
             showMoreButton.isHidden = true
             removeShowMoreButtonIfNeeded()
         }
@@ -171,14 +170,12 @@ final class ReviewCell: UITableViewCell {
     }
 
     private func addShowMoreButtonIfNeeded() {
-        // Add button to textStack if not already added
         if !textStack.arrangedSubviews.contains(showMoreButton) {
             textStack.insertArrangedSubview(showMoreButton, at: textStack.arrangedSubviews.count - 1)
         }
     }
 
     private func removeShowMoreButtonIfNeeded() {
-        // Remove button from textStack if present
         if textStack.arrangedSubviews.contains(showMoreButton) {
             textStack.removeArrangedSubview(showMoreButton)
             showMoreButton.removeFromSuperview()
@@ -188,7 +185,6 @@ final class ReviewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
 
-        // Clear all text fields
         reviewTextLabel.attributedText = nil
         reviewTextLabel.text = nil
         reviewTextLabel.numberOfLines = 0
@@ -199,15 +195,12 @@ final class ReviewCell: UITableViewCell {
         usernameLabel.attributedText = nil
         usernameLabel.text = nil
 
-        // Clear images
         ratingImageView.image = nil
         avatarImageView.image = nil
 
-        // Hide and remove show more button
         showMoreButton.isHidden = true
         removeShowMoreButtonIfNeeded()
 
-        // Reset configuration
         config = nil
         currentConfigId = nil
     }
@@ -263,7 +256,7 @@ private extension ReviewCell {
           
         showMoreButton.contentVerticalAlignment = .fill
         showMoreButton.setAttributedTitle(Config.showMoreText, for: .normal)
-        showMoreButton.isHidden = true // Initially hidden
+        showMoreButton.isHidden = true
         showMoreButton.addTarget(self, action: #selector(showMoreButtonTapped), for: .touchUpInside)
         
         cellStack.axis = .vertical
@@ -290,9 +283,7 @@ private extension ReviewCell {
     }
     
     @objc private func showMoreButtonTapped() {
-        guard let config = config,
-              let configId = currentConfigId else { return }
-        
+        guard let config = config, let configId = currentConfigId else { return }
         config.onTapShowMore(configId)
     }
     

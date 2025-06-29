@@ -31,28 +31,19 @@ extension ReviewsViewModel {
     
     typealias State = ReviewsViewModelState
     
-    //MARK: ?
-    // Метод получения отзывов (сетевая часть в фоне, UI на главном потоке)
+    /// Метод получения отзывов (сетевая часть в фоне, UI на главном потоке)
     func getReviews() {
         guard state.shouldLoad else { return }
         state.shouldLoad = false
-
-        // Сетевой запрос в фоне, но callback на главном потоке
+        
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.reviewsProvider.getReviews(offset: self?.state.offset ?? 0) { [weak self] result in
-                // ВАЖНО: callback уже должен быть на главном потоке
-                if Thread.isMainThread {
+                DispatchQueue.main.async {
                     self?.gotReviews(result)
-                } else {
-                    // На всякий случай переключаемся на главный поток
-                    DispatchQueue.main.async {
-                        self?.gotReviews(result)
-                    }
                 }
             }
         }
     }
-    
 }
 
 // MARK: - Private
