@@ -48,7 +48,7 @@ private extension ReviewsViewController {
     }
     
     @objc private func handleRefresh() {
-        viewModel.getReviews()
+        viewModel.refreshReviews()
     }
     
     func setupViewModel() {

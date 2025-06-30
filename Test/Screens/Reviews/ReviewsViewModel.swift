@@ -47,6 +47,20 @@ extension ReviewsViewModel {
             }
         }
     }
+    
+    func refreshReviews() {
+        state.offset = 0
+        state.shouldLoad = true
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.reviewsProvider.getReviews(offset: 0) { [weak self] result in
+                DispatchQueue.main.async {
+                    self?.state.items.removeAll()
+                    self?.gotReviews(result)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Private
@@ -148,9 +162,9 @@ extension ReviewsViewModel: UITableViewDataSource {
 
 extension ReviewsViewModel: UITableViewDelegate {
     
-//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-//        state.items[indexPath.row].height(with: tableView.bounds.size)
-//    }
+    //    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    //        state.items[indexPath.row].height(with: tableView.bounds.size)
+    //    }
     
     /// Метод дозапрашивает отзывы, если до конца списка отзывов осталось два с половиной экрана по высоте.
     func scrollViewWillEndDragging(
