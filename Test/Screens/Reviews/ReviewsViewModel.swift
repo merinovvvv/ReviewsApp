@@ -33,7 +33,10 @@ extension ReviewsViewModel {
     
     /// Метод получения отзывов (сетевая часть в фоне, UI на главном потоке)
     func getReviews() {
-        guard state.shouldLoad else { return }
+        guard state.shouldLoad else {
+            onStateChange?(state)
+            return
+        }
         state.shouldLoad = false
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in

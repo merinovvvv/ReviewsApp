@@ -142,10 +142,13 @@ final class ReviewCell: UITableViewCell {
                 imageView.clipsToBounds = true
                 
                 imageView.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    imageView.widthAnchor.constraint(equalToConstant: Constants.photoSize.width),
-                    imageView.heightAnchor.constraint(equalToConstant: Constants.photoSize.height)
-                ])
+                
+                let widthConstraint = imageView.widthAnchor.constraint(equalToConstant: Constants.photoSize.width)
+                let heightConstraint = imageView.heightAnchor.constraint(equalToConstant: Constants.photoSize.height)
+                
+                heightConstraint.priority = UILayoutPriority(999)
+                
+                NSLayoutConstraint.activate([widthConstraint, heightConstraint])
                 
                 photos.append(imageView)
                 photosStack.addArrangedSubview(imageView)
@@ -360,11 +363,6 @@ private extension ReviewCell {
             cellStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
                                               constant: -Constants.insets.bottom)
         ])
-        
-        photos.forEach { photo in
-            photo.widthAnchor.constraint(equalToConstant: Constants.photoSize.width).isActive = true
-            photo.heightAnchor.constraint(equalToConstant: Constants.photoSize.height).isActive = true
-        }
     }
 }
 

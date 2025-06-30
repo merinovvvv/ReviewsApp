@@ -3,6 +3,7 @@ import UIKit
 final class ReviewsView: UIView {
     
     let tableView = UITableView()
+    let refreshControl = UIRefreshControl()
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -36,6 +37,9 @@ private extension ReviewsView {
         
         tableView.estimatedRowHeight = 120
         tableView.rowHeight = UITableView.automaticDimension
+        
+        refreshControl.tintColor = .systemGray
+        tableView.refreshControl = refreshControl
         
         tableView.register(ReviewCell.self, forCellReuseIdentifier: ReviewCellConfig.reuseId)
         tableView.register(TotalReviewsCell.self, forCellReuseIdentifier: TotalReviewsCellConfig.reuseId)
