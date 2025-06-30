@@ -105,11 +105,13 @@ private extension ReviewsViewModel {
         }()
         let rating = review.rating
         let created = review.created.attributed(font: .created, color: .created)
+        let photo_urls = review.photo_urls
         let item = ReviewItem(
             reviewText: reviewText,
             username: username,
             rating: rating,
             created: created,
+            photo_urls: photo_urls,
             onTapShowMore: showMoreReview
         )
         return item

@@ -18,6 +18,8 @@ struct ReviewCellConfig {
     var maxLines = 3
     /// Время создания отзыва.
     let created: NSAttributedString
+    /// Фото
+    let photo_urls: [String?]
     /// Замыкание, вызываемое при нажатии на кнопку "Показать полностью...".
     let onTapShowMore: (UUID) -> Void
     
@@ -33,11 +35,11 @@ extension ReviewCellConfig: TableCellConfig {
         cell.configure(with: self)
     }
     
-//    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
-//    /// Вызывается из `heightForRowAt:` делегата таблицы.
-//    func height(with size: CGSize) -> CGFloat {
-//        return UITableView.automaticDimension
-//    }
+    //    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
+    //    /// Вызывается из `heightForRowAt:` делегата таблицы.
+    //    func height(with size: CGSize) -> CGFloat {
+    //        return UITableView.automaticDimension
+    //    }
 }
 
 // MARK: - Private
@@ -60,8 +62,9 @@ final class ReviewCell: UITableViewCell {
     //MARK: Private. UI Properties
     fileprivate let userStack = UIStackView()
     fileprivate let usernameAndRatingStack = UIStackView()
-    fileprivate let textStack = UIStackView()
+    fileprivate let textAndPhotosStack = UIStackView()
     fileprivate let textAndEmptyStack = UIStackView()
+    fileprivate let photosStack = UIStackView()
     fileprivate let cellStack = UIStackView()
     
     fileprivate let reviewTextLabel = UILabel()
@@ -71,6 +74,7 @@ final class ReviewCell: UITableViewCell {
     fileprivate let usernameLabel = UILabel()
     fileprivate var ratingImageView = UIImageView()
     fileprivate var emptyView = UIView()
+    fileprivate var photos: [UIImageView] = []
     
     
     //MARK: Private. Constants
@@ -95,18 +99,12 @@ final class ReviewCell: UITableViewCell {
         static let avatarToUsernameSpacing = 10.0
         /// Вертикальный отступ от имени пользователя до вью рейтинга.
         static let usernameToRatingSpacing = 6.0
-        /// Вертикальный отступ от вью рейтинга до текста (если нет фото).
-        static let ratingToTextSpacing = 6.0
-        /// Вертикальный отступ от вью рейтинга до фото.
-        static let ratingToPhotosSpacing = 10.0
+        /// Вертикальный отступ главного вертикального стека.
+        static let cellStackVerticalSpacing = 6.0
         /// Горизонтальные отступы между фото.
         static let photosSpacing = 8.0
-        /// Вертикальный отступ от фото (если они есть) до текста отзыва.
-        static let photosToTextSpacing = 10.0
-        /// Вертикальный отступ от текста отзыва до времени создания отзыва или кнопки "Показать полностью..." (если она есть).
-        static let reviewTextToCreatedSpacing = 6.0
-        /// Вертикальный отступ от кнопки "Показать полностью..." до времени создания отзыва.
-        static let showMoreToCreatedSpacing = 6.0
+        /// Вертикальный отступ между элементами стека, содержащего фото и текст (и возможно кнопку)
+        static let textAndPhotosVerticalSpacing = 6.0
     }
     
     required init?(coder: NSCoder) {
@@ -128,10 +126,35 @@ final class ReviewCell: UITableViewCell {
         reviewTextLabel.numberOfLines = config.maxLines
         createdLabel.attributedText = config.created
         usernameLabel.attributedText = config.username
-
+        
+        photosStack.arrangedSubviews.forEach {
+            photosStack.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+        photos.removeAll()
+        
+        for imageNameOpt in config.photo_urls {
+            if let imageName = imageNameOpt {
+                let imageView = UIImageView()
+                imageView.image = UIImage(named: imageName)
+                imageView.contentMode = .scaleAspectFill
+                imageView.layer.cornerRadius = Constants.photoCornerRadius
+                imageView.clipsToBounds = true
+                
+                imageView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    imageView.widthAnchor.constraint(equalToConstant: Constants.photoSize.width),
+                    imageView.heightAnchor.constraint(equalToConstant: Constants.photoSize.height)
+                ])
+                
+                photos.append(imageView)
+                photosStack.addArrangedSubview(imageView)
+            }
+        }
+        
         let renderer = RatingRenderer()
         ratingImageView.image = renderer.ratingImage(config.rating)
-
+        
         avatarImageView.image = UIImage(named: "l5w5aIHioYc")
         
         configureShowMoreButton()
@@ -166,39 +189,41 @@ final class ReviewCell: UITableViewCell {
         
         return textSize.height > maxHeight
     }
-
+    
     private func addShowMoreButtonIfNeeded() {
-        if !textStack.arrangedSubviews.contains(showMoreButton) {
-            textStack.insertArrangedSubview(showMoreButton, at: textStack.arrangedSubviews.count - 1)
+        if !textAndPhotosStack.arrangedSubviews.contains(showMoreButton) {
+            textAndPhotosStack.insertArrangedSubview(showMoreButton, at: textAndPhotosStack.arrangedSubviews.count - 1)
         }
     }
-
+    
     private func removeShowMoreButtonIfNeeded() {
-        if textStack.arrangedSubviews.contains(showMoreButton) {
-            textStack.removeArrangedSubview(showMoreButton)
+        if textAndPhotosStack.arrangedSubviews.contains(showMoreButton) {
+            textAndPhotosStack.removeArrangedSubview(showMoreButton)
             showMoreButton.removeFromSuperview()
         }
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
-
+        
         reviewTextLabel.attributedText = nil
         reviewTextLabel.text = nil
         reviewTextLabel.numberOfLines = 0
-
+        
         createdLabel.attributedText = nil
         createdLabel.text = nil
-
+        
         usernameLabel.attributedText = nil
         usernameLabel.text = nil
-
+        
         ratingImageView.image = nil
         avatarImageView.image = nil
-
+        
         showMoreButton.isHidden = true
         removeShowMoreButtonIfNeeded()
-
+        
+        photos.removeAll()
+        
         config = nil
         currentConfigId = nil
     }
@@ -228,10 +253,11 @@ private extension ReviewCell {
         usernameAndRatingStack.addArrangedSubview(ratingImageView)
         
         textAndEmptyStack.addArrangedSubview(emptyView)
-        textAndEmptyStack.addArrangedSubview(textStack)
+        textAndEmptyStack.addArrangedSubview(textAndPhotosStack)
         
-        textStack.addArrangedSubview(reviewTextLabel)
-        textStack.addArrangedSubview(createdLabel)
+        textAndPhotosStack.addArrangedSubview(photosStack)
+        textAndPhotosStack.addArrangedSubview(reviewTextLabel)
+        textAndPhotosStack.addArrangedSubview(createdLabel)
     }
     
     func configureViews() {
@@ -250,14 +276,14 @@ private extension ReviewCell {
         reviewTextLabel.lineBreakMode = .byWordWrapping
         
         ratingImageView.contentMode = .left
-          
+        
         showMoreButton.contentVerticalAlignment = .fill
         showMoreButton.setAttributedTitle(Config.showMoreText, for: .normal)
         showMoreButton.isHidden = true
         showMoreButton.addTarget(self, action: #selector(showMoreButtonTapped), for: .touchUpInside)
         
         cellStack.axis = .vertical
-        cellStack.spacing = Constants.ratingToTextSpacing
+        cellStack.spacing = Constants.cellStackVerticalSpacing
         cellStack.alignment = .fill
         
         userStack.axis = .horizontal
@@ -272,9 +298,17 @@ private extension ReviewCell {
         textAndEmptyStack.spacing = Constants.avatarToUsernameSpacing
         textAndEmptyStack.alignment = .top
         
-        textStack.axis = .vertical
-        textStack.spacing = Constants.reviewTextToCreatedSpacing
-        textStack.alignment = .leading
+        textAndPhotosStack.axis = .vertical
+        textAndPhotosStack.spacing = Constants.textAndPhotosVerticalSpacing
+        textAndPhotosStack.alignment = .leading
+        
+        photos.forEach { photo in
+            photo.layer.cornerRadius = Constants.photoCornerRadius
+        }
+        
+        photosStack.axis = .horizontal
+        photosStack.spacing = Constants.photosSpacing
+        photosStack.alignment = .center
         
         setupContentPriorities()
     }
@@ -300,7 +334,7 @@ private extension ReviewCell {
     }
     
     func setupConstraints() {
-        [cellStack, userStack, usernameAndRatingStack, textAndEmptyStack, textStack,
+        [cellStack, userStack, usernameAndRatingStack, textAndEmptyStack, textAndPhotosStack,
          avatarImageView, usernameLabel, ratingImageView, reviewTextLabel, createdLabel, emptyView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -314,8 +348,8 @@ private extension ReviewCell {
             
             emptyView.widthAnchor.constraint(equalToConstant: Constants.avatarSize.width),
             
-            reviewTextLabel.leadingAnchor.constraint(equalTo: textStack.leadingAnchor),
-            reviewTextLabel.trailingAnchor.constraint(equalTo: textStack.trailingAnchor),
+            reviewTextLabel.leadingAnchor.constraint(equalTo: textAndPhotosStack.leadingAnchor),
+            reviewTextLabel.trailingAnchor.constraint(equalTo: textAndPhotosStack.trailingAnchor),
             
             cellStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
                                                constant: Constants.insets.left),
@@ -326,6 +360,11 @@ private extension ReviewCell {
             cellStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
                                               constant: -Constants.insets.bottom)
         ])
+        
+        photos.forEach { photo in
+            photo.widthAnchor.constraint(equalToConstant: Constants.photoSize.width).isActive = true
+            photo.heightAnchor.constraint(equalToConstant: Constants.photoSize.height).isActive = true
+        }
     }
 }
 
