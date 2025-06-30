@@ -34,12 +34,6 @@ extension ReviewCellConfig: TableCellConfig {
         guard let cell = cell as? ReviewCell else { return }
         cell.configure(with: self)
     }
-    
-    //    /// Метод, возвращаюший высоту ячейки с данным ограничением по размеру.
-    //    /// Вызывается из `heightForRowAt:` делегата таблицы.
-    //    func height(with size: CGSize) -> CGFloat {
-    //        return UITableView.automaticDimension
-    //    }
 }
 
 // MARK: - Private
